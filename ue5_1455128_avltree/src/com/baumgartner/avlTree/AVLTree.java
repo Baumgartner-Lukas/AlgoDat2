@@ -125,6 +125,7 @@ public class AVLTree {
      * @param node node to be balanced
      */
     private void rebalance(AVLNode node) {
+        return "This is a test";
     }
 
 }
