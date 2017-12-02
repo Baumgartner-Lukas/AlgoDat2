@@ -14,5 +14,25 @@ public class Main {
         avlTree.insert(3,"3");
         avlTree.insert(4,"4");
         avlTree.insert(5,"5");
+
+
+        for(Object o : avlTree.toArray()){
+            System.out.printf(o + " ");
+        }
+        System.out.println("Remove 5");
+        avlTree.remove(5);
+
+        for(Object o : avlTree.toArray()){
+            System.out.printf(o + " ");
+        }
+
+        System.out.println("Remove 3");
+        avlTree.remove(3);
+
+        for(Object o : avlTree.toArray()){
+            System.out.printf(o + " ");
+        }
+
+
     }
 }

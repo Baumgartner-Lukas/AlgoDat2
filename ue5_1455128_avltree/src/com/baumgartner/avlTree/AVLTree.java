@@ -82,6 +82,12 @@ public class AVLTree {
      * @return true If element was found and deleted.
      */
     public boolean remove(Integer key) throws IllegalArgumentException {
+        if (key == null) throw new IllegalArgumentException("Key must not be empty");
+        if (find(key) != null) {
+            root = remove(root, key);
+            size--;
+            return true;
+        }
         return false;
     }
 
@@ -92,8 +98,12 @@ public class AVLTree {
      * @return Array representation of the tree.
      */
     public Object[] toArray() {
-        return null;
+        Object[] oArray = new Object[size];
+        toArrayInOrder(oArray, 0, root);
+        return oArray;
     }
+
+
 
     //---------- private methods ----------
 
@@ -111,6 +121,36 @@ public class AVLTree {
             node.right = insert(node.right, newNode);
         }
 
+        update(node);
+        return balance(node);
+    }
+
+    private AVLNode remove(AVLNode node, Integer key) {
+        if (node == null) return null;
+        if (key.compareTo(node.key) < 0) {
+            node.left = remove(node.left, key);
+        } else if (key.compareTo(node.key) > 0) {
+            node.right = remove(node.right, key);
+        } else {
+            // if node has two leafs attached
+            if (node.left == null) {
+                //if node has a leaf only on the left
+                return node.right;
+            } else if (node.right == null) {
+                //if node has a leaf only on the right
+                return node.left;
+            } else{
+                if(node.left.height > node.right.height){
+                    int parentVal = maxNode(node.left);
+                    node.key = parentVal;
+                    node.left = remove(node.left, parentVal);
+                }else{
+                    int parentVal = minNode(node.right);
+                    node.key = parentVal;
+                    node.right = remove(node.right, parentVal);
+                }
+            }
+        }
         update(node);
         return balance(node);
     }
@@ -193,5 +233,30 @@ public class AVLTree {
         return newParent;
     }
 
+    private Integer minNode(AVLNode node) {
+        if (node.left == null) return node.key;
+        else {
+            return minNode(node.left);
+        }
+    }
+
+    private Integer maxNode(AVLNode node){
+        if(node.right == null) return node.key;
+        else{
+            return maxNode(node.right);
+        }
+    }
+
+    private int toArrayInOrder(Object[] ret, int offset, AVLNode n) {
+        if (n.left != null) {
+            offset = toArrayInOrder(ret, offset, n.left);
+        }
+        ret[offset++] = n.data;
+        if (n.right != null) {
+            offset = toArrayInOrder(ret, offset, n.right);
+        }
+        return offset;
+    }
 
 }
+
