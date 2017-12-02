@@ -10,6 +10,9 @@ public class Main {
         AVLTree avlTree = new AVLTree();
 
         avlTree.insert(1,"1");
-        avlTree.insert(2,"1");
+        avlTree.insert(2,"2");
+        avlTree.insert(3,"3");
+        avlTree.insert(4,"4");
+        avlTree.insert(5,"5");
     }
 }

@@ -4,7 +4,7 @@ import com.baumgartner.Exceptions.NodeAlreadyExistsException;
 
 public class AVLTree {
     protected AVLNode root;
-    protected int size;
+    protected int size; //number of nodes in the tree
 
     /**
      * Default constructor.
@@ -21,7 +21,38 @@ public class AVLTree {
      * @return -1 in case of empty tree, current tree height otherwise.
      */
     public int height() {
-        return -1;
+        if (root == null) return -1;
+        return root.height;
+    }
+
+    /**
+     * Yields number of key/value pairs in the tree.
+     *
+     * @return Number of key/value pairs.
+     */
+    public int size() {
+        return size;
+    }
+
+    /**
+     * Returns value of a first found node with given key.
+     *
+     * @param key Key to search.
+     * @return Corresponding value if key was found, null otherwise.
+     */
+    public String find(Integer key) throws IllegalArgumentException {
+        AVLNode current = root;
+        while (current != null) {
+            if (current.key.equals(key)) {
+                return current.data;
+            }
+            if (key < current.key) {
+                current = current.left;
+            } else {
+                current = current.right;
+            }
+        }
+        return null;
     }
 
     /**
@@ -32,15 +63,16 @@ public class AVLTree {
      */
     public void insert(Integer key, String data) throws IllegalArgumentException, NodeAlreadyExistsException {
         AVLNode n = new AVLNode(key, data);
-        if(key == null || data.isEmpty()) throw new IllegalArgumentException("New nodes must not be empty");
-        if(!(find(n.key).equals("Not found"))) throw new NodeAlreadyExistsException("This node already exists!");
-        if(root == null) {
-            root = new AVLNode(key, data);
-        }else{
-            insert(root, new AVLNode(key, data));
+        if (key == null || data.isEmpty()) throw new IllegalArgumentException("New nodes must not be empty");
+        if (!(find(n.key) == null)) throw new NodeAlreadyExistsException("This node already exists!");
+        if (root == null) {
+            root = n;
+            size++;
+        } else {
+            root = insert(root, n);
+            size++;
         }
     }
-
 
 
     /**
@@ -53,35 +85,6 @@ public class AVLTree {
         return false;
     }
 
-    /**
-     * Returns value of a first found node with given key.
-     *
-     * @param key Key to search.
-     * @return Corresponding value if key was found, null otherwise.
-     */
-    public String find(Integer key) throws IllegalArgumentException {
-            AVLNode current = root;
-            while (current != null) {
-                if (current.key.equals(key)) {
-                    return current.data;
-                }
-                if (key < current.key) {
-                    current = current.left;
-                } else {
-                    current = current.right;
-                }
-            }
-            return "Not found";
-        }
-
-    /**
-     * Yields number of key/value pairs in the tree.
-     *
-     * @return Number of key/value pairs.
-     */
-    public int size() {
-        return size;
-    }
 
     /**
      * Yields an array representation of the data elements (in-order).
@@ -96,36 +99,99 @@ public class AVLTree {
 
     /**
      * Adds element to the tree
-     * @param root parent element of new node
-     * @param newNode  new node that gets insertet into the AVL tree
+     *
+     * @param node    parent element of new node
+     * @param newNode new Node that gets inserted into the AVL tree
      */
-    private void insert(AVLNode root, AVLNode newNode) {
+    private AVLNode insert(AVLNode node, AVLNode newNode) {
+        if (node == null) return newNode;
+        if (newNode.key.compareTo(node.key) < 0) {
+            node.left = insert(node.left, newNode);
+        } else {
+            node.right = insert(node.right, newNode);
+        }
+
+        update(node);
+        return balance(node);
     }
 
     /**
-     * Implements cut & link restructure operation.
-     * @param n Node to start restructuring with.
+     * Update the height of a node. Update the balance of a node
+     *
+     * @param node node to calculate height and balance of
      */
-    private void restructure (AVLNode n) {
+    private void update(AVLNode node) {
+        int leftNodeHeight = (node.left == null) ? -1 : node.left.height;
+        int rightNodeHeight = (node.right == null) ? -1 : node.right.height;
+
+        //update height
+        node.height = 1 + Math.max(leftNodeHeight, rightNodeHeight);
+        // update balanceFactor
+        node.balanceFactor = rightNodeHeight - leftNodeHeight;
     }
 
     /**
-     * Calculates the height of a node.
-     * @param node node to calculate height of
+     * @param node Rebalances the node if the balance factor is greater 1 or smaller -1
+     * @return returns the re-balanced node
      */
-    private void updateHeights(AVLNode node){
+    private AVLNode balance(AVLNode node) {
+        //more node on the left
+        if (node.balanceFactor == -2) {
+            if (node.left.balanceFactor <= 0) {
+                //rotate left-left
+                return rotateLeftLeft(node);
+            } else {
+                //rotate left-right
+                return rotateLeftRight(node);
+            }
+        } else if (node.balanceFactor == +2) {
+            if (node.right.balanceFactor >= 0) {
+                //rotate right-right
+                return rotateRightRight(node);
+            } else {
+                //rotate right-left
+                return rotateRightLeft(node);
+            }
+        }
+        //Node is balanced
+        return node;
     }
 
-    private int nodeHeight(AVLNode node) {
-        return -1;
+    private AVLNode rotateLeftLeft(AVLNode node) {
+        return rotateRight(node);
     }
 
-    /**
-     * Rebalances a node
-     * @param node node to be balanced
-     */
-    private void rebalance(AVLNode node) {
-        return "This is a test";
+    private AVLNode rotateLeftRight(AVLNode node) {
+        node.left = rotateLeft(node);
+        return rotateLeftLeft(node);
     }
+
+    private AVLNode rotateRightRight(AVLNode node) {
+        return rotateLeft(node);
+    }
+
+    private AVLNode rotateRightLeft(AVLNode node) {
+        node.right = rotateRight(node);
+        return rotateRightRight(node);
+    }
+
+    private AVLNode rotateRight(AVLNode node) {
+        AVLNode newParent = node.left;
+        node.left = newParent.right;
+        newParent.right = node;
+        update(node);
+        update(newParent);
+        return newParent;
+    }
+
+    private AVLNode rotateLeft(AVLNode node) {
+        AVLNode newParent = node.right;
+        node.right = newParent.left;
+        newParent.left = node;
+        update(node);
+        update(newParent);
+        return newParent;
+    }
+
 
 }
